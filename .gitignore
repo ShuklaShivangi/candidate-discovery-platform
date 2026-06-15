@@ -1,0 +1,13 @@
+venv/
+__pycache__/
+*.pyc
+
+outputs/
+
+.vscode/
+
+.env
+
+data/*.jsonl
+
+data/*.docx
