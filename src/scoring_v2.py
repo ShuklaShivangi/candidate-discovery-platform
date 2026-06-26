@@ -10,7 +10,19 @@ class CandidateScorer:
         return min(max(years, 0), 9)
 
     def title_bonus(self, candidate):
-        pass
+        relevant_title = ['AI Engineer',
+'Machine Learning Engineer',
+'ML Engineer',
+'LLM Engineer',
+'NLP Engineer',
+'Applied Scientist',
+'AI Research Engineer',
+'Data Engineer']
+        if candidate["profile"]["current_title"] in relevant_title :
+            return 1
+        else:
+            return 0
+
 
     def education_bonus(self, candidate):
         pass
@@ -43,4 +55,4 @@ if __name__ == "__main__":
 
     scorer = CandidateScorer(None)
 
-    print(scorer.experience_score(candidate))
+    print(scorer.title_bonus(candidate))
