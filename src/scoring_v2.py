@@ -41,7 +41,52 @@ class CandidateScorer:
         
 
     def skill_score(self, candidate):
-        pass
+
+        relevant_skills = [
+        "Python",
+        "Embeddings",
+        "Retrieval",
+        "Ranking",
+        "LLMs",
+        "Fine-tuning LLMs",
+        "Sentence Transformers",
+        "OpenAI Embeddings",
+        "BGE",
+        "E5",
+        "Pinecone",
+        "Weaviate",
+        "Qdrant",
+        "Milvus",
+        "OpenSearch",
+        "Elasticsearch",
+        "FAISS",
+        "NDCG",
+        "MRR",
+        "MAP",
+        "LoRA",
+        "QLoRA",
+        "PEFT",
+        "Learning-to-Rank",
+        "XGBoost",
+        "NLP"
+    ]
+
+        score = 0
+
+        for skill in candidate["skills"]:
+
+            if skill["name"] in relevant_skills:
+
+                if skill["proficiency"] == "beginner":
+                    score += 0.1
+
+                elif skill["proficiency"] == "intermediate":
+                    score += 0.2
+
+                elif skill["proficiency"] == "advanced":
+                    score += 0.3
+
+        return score
 
     def assessment_score(self, candidate):
         pass
@@ -69,3 +114,4 @@ if __name__ == "__main__":
     print("Experience:", scorer.experience_score(candidate))
     print("Title:", scorer.title_bonus(candidate))
     print("Education:", scorer.education_bonus(candidate))
+    print("Skills     :", scorer.skill_score(candidate))
