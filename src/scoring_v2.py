@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 RELEVANT_SKILLS = [
     "Python",
@@ -99,10 +100,95 @@ class CandidateScorer:
 
         return round(score, 2)
     
-    def career_history_score(self, candidate):
-        pass
+    def last_active_score(self, candidate):
+
+        last_active = datetime.strptime(
+            candidate["redrob_signals"]["last_active_date"], "%Y-%m-%d"
+            )
+
+        today = datetime(2026, 6, 27)   # Dataset reference date
+        days = (today - last_active).days
+
+        if days <= 30:
+            return 4
+        elif days <= 60:
+            return 3
+        elif days <= 90:
+            return 2
+        elif days <= 120:
+            return 1
+        return 0
+
+
+    def open_to_work_score(self, candidate):
+        return 5 if candidate["redrob_signals"]["open_to_work_flag"] else 0
+
+
+    def notice_period_score(self, candidate):
+        notice = candidate["redrob_signals"]["notice_period_days"]
+
+        if notice <= 30:
+            return 4
+        elif notice <= 60:
+            return 2
+        elif notice <= 90:
+            return 1
+        return 0
+
+
+    def response_rate_score(self, candidate):
+        rate = candidate["redrob_signals"]["recruiter_response_rate"] * 100
+
+        if rate <= 20:
+            return 1
+        elif rate <= 40:
+            return 2
+        elif rate <= 60:
+            return 3
+        elif rate <= 80:
+            return 4
+        return 5
+
+
+    def profile_completeness_score(self, candidate):
+        score = candidate["redrob_signals"]["profile_completeness_score"]
+
+        if score <= 25:
+            return 1
+        elif score <= 50:
+            return 2
+        elif score <= 75:
+            return 3
+        return 4
+
+
+    def interview_completion_score(self, candidate):
+        rate = candidate["redrob_signals"]["interview_completion_rate"] * 100
+
+        if rate <= 30:
+            return 1
+        elif rate <= 70:
+            return 2
+        return 3
+
+
+    def relocation_score(self, candidate):
+        return 2 if candidate["redrob_signals"]["willing_to_relocate"] else 0
+
 
     def recruiter_signal_score(self, candidate):
+        return (
+            self.last_active_score(candidate)
+            + self.open_to_work_score(candidate)
+            + self.notice_period_score(candidate)
+            + self.response_rate_score(candidate)
+            + self.profile_completeness_score(candidate)
+            + self.interview_completion_score(candidate)
+            + self.relocation_score(candidate)
+        )
+
+    
+    def career_history_score(self, candidate):
         pass
 
     def final_score(self, candidate):
@@ -124,3 +210,4 @@ if __name__ == "__main__":
     print("Education:", scorer.education_bonus(candidate))
     print("Skills     :", scorer.skill_score(candidate))
     print("Assessment:", scorer.assessment_score(candidate))
+    print("Recruiter :", scorer.recruiter_signal_score(candidate))
