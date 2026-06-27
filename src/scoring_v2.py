@@ -1,5 +1,10 @@
 import json
 from datetime import datetime
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
+from docx import Document
+
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
 RELEVANT_SKILLS = [
     "Python",
@@ -189,7 +194,32 @@ class CandidateScorer:
 
     
     def career_history_score(self, candidate):
-        pass
+
+        career_text = ""
+
+        for job in candidate["career_history"]:
+            career_text += (
+            job["title"] + " "
+            + job["description"] + " "
+        )
+
+        doc = Document("data/job_description.docx")
+
+        jd_text = ""
+
+        for paragraph in doc.paragraphs:
+            jd_text += paragraph.text + " "
+
+        career_embedding = model.encode([career_text])
+        jd_embedding = model.encode([jd_text])
+
+        similarity = cosine_similarity(
+            career_embedding,
+            jd_embedding
+        )[0][0]
+
+        score = min(similarity * 45, 30)
+        return round(score, 2)
 
     def final_score(self, candidate):
         pass
@@ -211,3 +241,4 @@ if __name__ == "__main__":
     print("Skills     :", scorer.skill_score(candidate))
     print("Assessment:", scorer.assessment_score(candidate))
     print("Recruiter :", scorer.recruiter_signal_score(candidate))
+    print("Career     :", scorer.career_history_score(candidate))
