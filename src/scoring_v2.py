@@ -23,9 +23,22 @@ class CandidateScorer:
         else:
             return 0
 
-
     def education_bonus(self, candidate):
-        pass
+        relevant_education = [
+        "Computer Science",
+        "Computer Engineering",
+        "Information Technology",
+        "Software Engineering",
+        "Artificial Intelligence",
+        "Machine Learning"
+    ]
+
+        for education in candidate["education"]:
+            if education["field_of_study"] in relevant_education:
+                return 1
+
+        return 0
+        
 
     def skill_score(self, candidate):
         pass
@@ -52,7 +65,7 @@ if __name__ == "__main__":
         candidates = json.load(f)
 
     candidate = candidates[0]
-
     scorer = CandidateScorer(None)
-
-    print(scorer.title_bonus(candidate))
+    print("Experience:", scorer.experience_score(candidate))
+    print("Title:", scorer.title_bonus(candidate))
+    print("Education:", scorer.education_bonus(candidate))
