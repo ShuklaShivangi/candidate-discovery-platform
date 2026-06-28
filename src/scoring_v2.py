@@ -210,7 +210,7 @@ class CandidateScorer:
             job["title"] + " "
             + job["description"] + " "
         )
-
+        
         career_embedding = model.encode([career_text])
 
         similarity = cosine_similarity(
