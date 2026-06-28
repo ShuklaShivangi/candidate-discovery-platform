@@ -37,15 +37,23 @@ RELEVANT_SKILLS = [
 
 class CandidateScorer:
 
-    def __init__(self, job_description):
-        self.job_description = job_description
+    def __init__(self):
+
+        doc = Document("data/job_description.docx")
+
+        jd_text = ""
+
+        for paragraph in doc.paragraphs:
+            jd_text += paragraph.text + " "
+
+        self.jd_embedding = model.encode([jd_text])
 
     def experience_score(self, candidate):
         years = round(candidate["profile"]["years_of_experience"])
         return min(max(years, 0), 9)
 
     def title_bonus(self, candidate):
-        relevant_title = ['AI Engineer',
+        relevant_titles = ['AI Engineer',
 'Machine Learning Engineer',
 'ML Engineer',
 'LLM Engineer',
@@ -53,7 +61,7 @@ class CandidateScorer:
 'Applied Scientist',
 'AI Research Engineer',
 'Data Engineer']
-        if candidate["profile"]["current_title"] in relevant_title :
+        if candidate["profile"]["current_title"] in relevant_titles :
             return 1
         else:
             return 0
@@ -92,7 +100,7 @@ class CandidateScorer:
                 elif skill["proficiency"] == "advanced":
                     score += 0.3
 
-        return score
+        return round(score, 2)
 
     def assessment_score(self, candidate): 
         score = 0
@@ -203,26 +211,27 @@ class CandidateScorer:
             + job["description"] + " "
         )
 
-        doc = Document("data/job_description.docx")
-
-        jd_text = ""
-
-        for paragraph in doc.paragraphs:
-            jd_text += paragraph.text + " "
-
         career_embedding = model.encode([career_text])
-        jd_embedding = model.encode([jd_text])
 
         similarity = cosine_similarity(
-            career_embedding,
-            jd_embedding
+        career_embedding,
+        self.jd_embedding
         )[0][0]
-
         score = min(similarity * 45, 30)
         return round(score, 2)
 
     def final_score(self, candidate):
-        pass
+
+        return round(
+        self.experience_score(candidate)
+        + self.title_bonus(candidate)
+        + self.education_bonus(candidate)
+        + self.skill_score(candidate)
+        + self.assessment_score(candidate)
+        + self.career_history_score(candidate)
+        + self.recruiter_signal_score(candidate),
+        2
+    )
 
 # -------------------------------
 # Testing starts here
@@ -233,12 +242,16 @@ if __name__ == "__main__":
     with open("data/sample_candidates.json", "r") as f:
         candidates = json.load(f)
 
-    candidate = candidates[0]
-    scorer = CandidateScorer(None)
-    print("Experience:", scorer.experience_score(candidate))
-    print("Title:", scorer.title_bonus(candidate))
-    print("Education:", scorer.education_bonus(candidate))
-    print("Skills     :", scorer.skill_score(candidate))
-    print("Assessment:", scorer.assessment_score(candidate))
-    print("Recruiter :", scorer.recruiter_signal_score(candidate))
-    print("Career     :", scorer.career_history_score(candidate))
+    scorer = CandidateScorer()
+    for candidate in candidates:
+        candidate["final_score"] = scorer.final_score(candidate)
+
+    candidates.sort(
+    key=lambda x: x["final_score"],
+    reverse=True
+    )
+
+    print("\nTop 10 Candidates:\n")
+
+    for rank, candidate in enumerate(candidates[:10], start=1):
+        print(rank, candidate["candidate_id"], candidate["final_score"])
